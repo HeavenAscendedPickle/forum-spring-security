@@ -10,7 +10,10 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -24,17 +27,24 @@ public class ExpiredPasswordFilter extends GenericFilterBean {
 		HttpServletResponse response = (HttpServletResponse) resp;
 		Principal principal = request.getUserPrincipal();
 		if (principal != null && checkEndPoint(request.getMethod(), request.getServletPath())) {
-			UserProfile userProfile = (UserProfile) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-			if(!userProfile.isPasswordNotExpired()) {
-				response.sendError(403, "password expired");
-				return;
-			}
+		    
+		    
+		    
+			User userProfile = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+			User user = new User(userProfile.getUsername(), userProfile.getPassword(), true, true, true, true, userProfile.getAuthorities());
+//			SecurityContext sc = SecurityContextHolder.getContext();
+//			sc.setAuthentication();
+			SecurityContextHolder.setContext((SecurityContext) user);
+//			if(!user.isEnabled()) {
+//				response.sendError(403, "password expired");
+//				return;
+//			}
 		}
 		chain.doFilter(request, response);
 	}
 
 	private boolean checkEndPoint(String method, String path) {
-		return !("Put".equalsIgnoreCase(method) && path.matches("/account/password/?"));
+		return ("Put".equalsIgnoreCase(method) && path.matches("/account/password/?"));
 	}
 
 }
