@@ -23,13 +23,16 @@ public class ExpiredPasswordFilter extends GenericFilterBean {
 	HttpServletRequest request = (HttpServletRequest) req;
 	HttpServletResponse response = (HttpServletResponse) resp;
 	Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-	if (authentication != null && checkEndPoint(request.getMethod(), request.getServletPath())) {
+	if (checkEndPoint(request.getMethod(), request.getServletPath()) && authentication != null
+		&& authentication.getPrincipal() instanceof UserProfile) {
 	    UserProfile userProfile = (UserProfile) authentication.getPrincipal();
 	    if (!userProfile.isPasswordNotExpired()) {
 		response.sendError(403, "password expired");
 		return;
+
 	    }
 	}
+
 	chain.doFilter(request, response);
     }
 
